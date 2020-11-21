@@ -66,11 +66,11 @@ public class AnagramFinder extends Configured implements Tool {
 				if (uniques.add(value)) {
 					size++;
 					builder.append(value.toString());
-					builder.append(‘,’);
+					builder.append(",");
 				}
 			}
 			
-			builder.setLength(builder.length() – 1);
+			builder.setLength(builder.length() - 1);
 
 			if (size > 1) {
 				count.set(size);
