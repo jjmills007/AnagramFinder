@@ -38,7 +38,7 @@ public class AnagramFinder {
 	    int stopwordslength = stopwords.length();
 		
 	    for (int i=0; i<=stopwordslength; i++){
-		book.replaceAll(stopwords[i]));
+		book.replaceAll(stopwords[i]);
 	    }
 	
 	    StringTokenizer itr = new StringTokenizer(book.replaceAll("[^a-zA-Z ]", ""));
