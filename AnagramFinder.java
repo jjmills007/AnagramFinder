@@ -4,6 +4,7 @@ import java.util.StringTokenizer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Scanner;
 
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -19,14 +20,25 @@ public class AnagramFinder {
 
     static Collection<Text> anagrams = new HashSet<Text>();
 
-    public static class AnagramMapper extends
-
-        Mapper<Object, Text, Text, Text> {
+    public static class AnagramMapper extends Mapper<Object, Text, Text, Text> {
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+		
+	    Scanner sc = new Scanner(new File(stopwords.txt));
+	    List<String> lines = new ArrayList<String>();
+	    while (sc.hasNextLine()) {
+	    	lines.add(sc.nextLine());
+	    }
+	    String[] stopwords = lines.toArray(new String[0]);
 
-            StringTokenizer itr = new StringTokenizer(value.toString().replaceAll("[^a-zA-Z ]", "").toLowerCase());
-
+            StringTokenizer itr = new StringTokenizer(value.toString().toLowerCase());
+		
+	    for (int i=0; i<=stopwords.length(); i++){
+		itr = itr.replaceAll(stopwords[i]);
+	    }
+	
+	    itr = itr.replaceAll("[^a-zA-Z ]", "");
+		
             while (itr.hasMoreTokens()) {
                 String word = itr.nextToken();
                 char[] arr = word.toCharArray();
@@ -49,12 +61,13 @@ public class AnagramFinder {
 			
             String anagram = null;
             
-			for (Text val : values) {
+	    for (Text val : values) {
                 if (anagram == null) {
                     anagram = val.toString();
                 } else {
                     anagram = anagram + ',' + val.toString();
                 }
+		//could be where I could sort anagrams alphabetically
                 // anagrams.add(val);
             }
             context.write(key, new Text(anagram));
