@@ -1,7 +1,9 @@
 
 import java.io.IOException;
+import java.io.File;
 import java.util.StringTokenizer;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -31,13 +33,15 @@ public class AnagramFinder {
 	    }
 	    String[] stopwords = lines.toArray(new String[0]);
 
-            StringTokenizer itr = new StringTokenizer(value.toString().toLowerCase());
+            String book = new String(value.toString().toLowerCase());
 		
-	    for (int i=0; i<=stopwords.length(); i++){
-		itr = itr.replaceAll(stopwords[i]);
+	    int stopwordslength = stopwords.length();
+		
+	    for (int i=0; i<=stopwordslength; i++){
+		book.replaceAll(stopwords[i]));
 	    }
 	
-	    itr = itr.replaceAll("[^a-zA-Z ]", "");
+	    StringTokenizer itr = new StringTokenizer(book.replaceAll("[^a-zA-Z ]", ""));
 		
             while (itr.hasMoreTokens()) {
                 String word = itr.nextToken();
