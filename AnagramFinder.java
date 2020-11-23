@@ -32,11 +32,12 @@ public class AnagramFinder {
 	    while (sc.hasNextLine()) {
 	    	lines.add(sc.nextLine());
 	    }
-	    String[] stopwords = lines.toArray(new String[0]);
-
-            String book = new String(value.toString().toLowerCase());
 		
-	    int stopwordslength = stopwords.length();
+	    public String[] stopwords = lines.toArray(new String[0]);
+
+            public String book = new String(value.toString().toLowerCase());
+		
+	    int stopwordslength = stopwords.length;
 		
 	    for (int i=0; i<=stopwordslength; i++){
 		book = book.replaceAll(stopwords[i]);
