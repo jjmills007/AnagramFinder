@@ -26,7 +26,7 @@ public class AnagramFinder {
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 		
-	    Scanner sc = new Scanner(new File(stopwords.txt));
+	    Scanner sc = new Scanner(new File("stopwords.txt"));
 	    List<String> lines = new ArrayList<String>();
 	    while (sc.hasNextLine()) {
 	    	lines.add(sc.nextLine());
