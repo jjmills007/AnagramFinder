@@ -1,120 +1,76 @@
+
 import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.classification.InterfaceAudience;
-
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Job;
 
-public class AnagramFinder extends Configured implements Tool {
+public class AnagramFinder {
 
-	public static class Mapper extends org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text> {
+    static Collection<Text> anagrams = new HashSet<Text>();
 
-		private Text sortedText = new Text();
-		private Text outputValue = new Text();
+    public static class AnagramMapper extends
 
-		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+        Mapper<Object, Text, Text, Text> {
 
-			StringTokenizer tokenizer = new StringTokenizer(value.toString(), " \t\n\r\f,.:()!?", false);
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+
+            StringTokenizer itr = new StringTokenizer(value.toString());
+
+            while (itr.hasMoreTokens()) {
+                String word = itr.nextToken();
+                char[] arr = word.toCharArray();
+                Arrays.sort(arr);
+                String wordKey = new String(arr);
+                context.write(new Text(wordKey), new Text(word));
+            }
+        }
+    }
+
+    // Does not summarize, but simply collets the list of anagramming words for
+
+    // a key
+
+    public static class AnagramReducer extends Reducer<Text, Text, Text, Text> {
+
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+            // Collection<Text> anagrams = new HashSet<Text>();
 			
-			while (tokenizer.hasMoreTokens()) {
-				String token = tokenizer.nextToken().trim().toLowerCase();
-				sortedText.set(sort(token));
-				outputValue.set(token);
-				context.write(sortedText, outputValue);
-			}
-		}
+            String anagram = null;
+            
+			for (Text val : values) {
+                if (anagram == null) {
+                    anagram = val.toString();
+                } else {
+                    anagram = anagram + ',' + val.toString();
+                }
+                // anagrams.add(val);
+            }
+            context.write(key, new Text(anagram));
+        }
+    }
 
-		protected String sort(String input) {
-			char[] cs = input.toCharArray();
-			Arrays.sort(cs);
-			return new String(cs);
-		}
-	}
-
-	public static class Combiner extends org.apache.hadoop.mapreduce.Reducer<Text, Text, Text, Text> {
-
-		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-		
-			Set<Text> uniques = new HashSet<Text>();
-			
-			for (Text value : values) {
-				if (uniques.add(value)) {
-					context.write(key, value);
-				}
-			}
-		}
-	}
-
-	public static class Reducer extends org.apache.hadoop.mapreduce.Reducer<Text, Text, IntWritable, Text> {
-
-		private IntWritable count = new IntWritable();
-		private Text outputValue = new Text();
-
-		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-			
-			Set<Text> uniques = new HashSet<Text>();
-			int size = 0;
-			StringBuilder builder = new StringBuilder();
-			
-			for (Text value : values) {
-				if (uniques.add(value)) {
-					size++;
-					builder.append(value.toString());
-					builder.append(",");
-				}
-			}
-			
-			builder.setLength(builder.length() - 1);
-
-			if (size > 1) {
-				count.set(size);
-				outputValue.set(builder.toString());
-				context.write(count, outputValue);
-			}
-		}
-	}
-
-	public int run(String[] args) throws Exception {
-	
-		Path inputPath = new Path(args[0]);
-		Path outputPath = new Path(args[1]);
-
-		Job job = new Job(getConf(), "Anagram Finder");
-
-		job.setJarByClass(AnagramFinder.class);
-
-		FileInputFormat.setInputPaths(job, inputPath);
-		FileOutputFormat.setOutputPath(job, outputPath);
-
-		job.setMapperClass(Mapper.class);
-		job.setCombinerClass(Combiner.class);
-		job.setReducerClass(Reducer.class);
-
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(Text.class);
-
-		return job.waitForCompletion(false) ? 0 : -1;
-	}
-
-	public static void main(String[] args) throws Exception {
-	
-		System.exit(ToolRunner.run(new Configuration(), new AnagramFinder(), args));
-	}
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "word count");
+        job.setJarByClass(AnagramFinder.class);
+        job.setMapperClass(AnagramMapper.class);
+        job.setReducerClass(AnagramReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
 }
