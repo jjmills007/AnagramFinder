@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.StringTokenizer;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -38,7 +39,7 @@ public class AnagramFinder {
 	    int stopwordslength = stopwords.length();
 		
 	    for (int i=0; i<=stopwordslength; i++){
-		book.replaceAll(stopwords[i]);
+		book = book.replaceAll(stopwords[i]);
 	    }
 	
 	    StringTokenizer itr = new StringTokenizer(book.replaceAll("[^a-zA-Z ]", ""));
